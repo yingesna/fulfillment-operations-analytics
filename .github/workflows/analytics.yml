@@ -1,0 +1,39 @@
+name: Validate and build analytics artifacts
+
+on:
+  push:
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+          cache: pip
+      - name: Install dependencies
+        run: python -m pip install -r requirements.txt
+      - name: Generate reproducible synthetic dataset
+        run: python generate_data.py
+      - name: Run unit tests
+        run: python -m unittest discover -s tests -v
+      - name: Run SQLite KPI and validation checks
+        run: python validate_sql.py
+      - name: Generate dashboard chart
+        run: python analyze.py
+      - name: Upload dataset and dashboard
+        uses: actions/upload-artifact@v4
+        with:
+          name: fulfillment-analytics-results
+          path: |
+            data/fulfillment_operations.csv
+            dashboards/on_time_by_facility.png
+          if-no-files-found: error
