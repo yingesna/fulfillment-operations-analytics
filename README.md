@@ -1,57 +1,80 @@
 # Fulfillment Operations & Workforce Analytics
 
-**Portfolio case study | Synthetic data | SQL (SQLite) | Python | Operational KPIs**
+**SQL · Python · Operational KPIs · Business insights · Reproducible analytics**
 
-## Business problem
-How do staffing coverage, daily order volume, and capacity constraints relate to fulfillment productivity, order backlogs, quality, and on-time processing across three simulated facilities?
+A complete, independent portfolio case study demonstrating how an analyst can connect workforce capacity, order flow, service levels, and quality to practical operational decisions.
 
-This is an independent learning project inspired by common fulfillment operations workflows. **All data is artificially generated. It is not Amazon data and does not represent actual company performance.**
+> **Data integrity:** Every observation is **synthetic** and generated for this portfolio. No Amazon, Apple, customer, or employer-proprietary data is used. The business findings describe a simulation, not actual company performance.
 
-## Dataset
-Run `python generate_data.py` to generate 270 facility-day observations (90 days × 3 facilities) with a fixed random seed.
+![Executive dashboard showing synthetic facility KPIs](dashboards/operations_dashboard.svg)
 
-Fields: `date`, `facility`, `scheduled_staff`, `actual_staff`, `scheduled_labor_hours`, `actual_labor_hours`, `forecast_orders`, `orders_received`, `orders_processed`, `on_time_orders`, `defect_count`, `backlog_orders`.
+## Executive summary
 
-Backlog is carried forward per facility: **ending backlog = previous ending backlog + orders received − orders processed**. Processing cannot exceed simulated daily capacity or available work.
+Across **270 simulated facility-days** (three facilities, 90 days), the model generated **1,141,648 orders received** and **1,058,478 processed**, with **81.26%** on-time fulfillment and **14.97** processed orders per actual labor hour.
 
-## KPIs
-- **Orders per labor hour:** processed orders / actual labor hours.
-- **On-time fulfillment rate:** on-time orders / processed orders.
-- **Staffing coverage:** actual staff / scheduled staff.
-- **DPMO proxy:** defect count / processed orders × 1,000,000. This uses one opportunity per processed order, and is not an Amazon-defined metric.
-- **Backlog to intake ratio:** sum of daily ending backlog / sum of daily orders received. This is a diagnostic ratio, not a unique-order backlog rate.
-- **Forecast error:** (orders received − forecast orders) / forecast orders.
+**Three decision-oriented findings:**
 
-## Run locally
+1. **Prioritize FC-02 capacity analysis:** FC-02 had the largest ending backlog (**40,476 orders**) and the lowest on-time rate (**80.73%**). Evaluate volume and capacity alignment before recommending staffing changes.
+2. **Investigate staffing-coverage gaps:** Facility-days below 90% staffing coverage had **80.66%** weighted on-time fulfillment versus **81.69%** on higher-coverage days. This is descriptive, **not causal**.
+3. **Balance throughput with service:** Facility productivity was tightly clustered (**14.90–15.02 orders/labor hour**), but service outcomes differed. A scorecard should include on-time fulfillment, backlog, quality, and labor productivity.
+
+**[Read the full executive analysis and recommendations →](BUSINESS_INSIGHTS.md)**
+
+## Project navigation
+
+| Resource | Purpose |
+|---|---|
+| [Executive insights](BUSINESS_INSIGHTS.md) | Three quantified findings, recommendations, limitations |
+| [Dashboard](dashboards/operations_dashboard.svg) | Visual KPI overview and facility comparison |
+| [Jupyter notebook](notebooks/operations_analysis.ipynb) | Exploratory KPI calculations and charts |
+| [Data generator](generate_data.py) | Reproducible 270-row synthetic dataset |
+| [SQL KPI queries](sql/02_kpi_analysis.sql) | Weighted facility-level performance metrics |
+| [SQL diagnostic query](sql/03_root_cause_analysis.sql) | Staffing segmentation and exploratory comparison |
+| [SQL validation](sql/01_data_validation.sql) | Quality and logical checks |
+| [Automated workflow](.github/workflows/analytics.yml) | Tests, SQL validation, generated CSV and PNG artifacts |
+
+## Reproduce the analysis
+
+Requires Python 3.11 or later.
+
 ```bash
 python -m pip install -r requirements.txt
 python generate_data.py
-python analyze.py
-python -m unittest discover -s tests
-```
-
-The chart will be written to `dashboards/on_time_by_facility.png`. The Python analysis prints weighted facility-level KPIs.
-
-## SQL analysis
-Import `data/fulfillment_operations.csv` into a SQLite table named `fulfillment_operations` (for example using DB Browser for SQLite or a Python import script), then execute:
-1. `sql/01_data_validation.sql` — completeness and logical constraints.
-2. `sql/02_kpi_analysis.sql` — facility-level KPI comparisons.
-3. `sql/03_root_cause_analysis.sql` — exploratory staffing coverage segmentation.
-
-## Limitations
-Synthetic relationships are programmed assumptions, not empirical findings. Comparing staffing bands is descriptive and **does not establish causation**. Findings should be computed from generated data before writing any conclusions or recommendations. No actual productivity gains, financial savings, or business outcomes are claimed.
-
-## Next steps
-Add an executable notebook, richer dashboard, SQL import automation, time-series diagnostics, and a documented executive summary based on validated outputs.
-
-
-## Automated GitHub Actions pipeline
-The [analytics workflow](.github/workflows/analytics.yml) runs on pushes, pull requests, and manual dispatch. It generates the synthetic dataset, runs unit tests, executes SQL checks via `validate_sql.py`, produces the on-time performance chart, and uploads both the CSV and PNG as a downloadable workflow artifact.
-
-To run it manually, open **Actions → Validate and build analytics artifacts → Run workflow**. When the run finishes, download **fulfillment-analytics-results** from the run's Artifacts section. Workflow artifacts are generated outputs; they are not committed to the repository.
-
-To run SQL validation locally:
-```bash
-python generate_data.py
+python -m unittest discover -s tests -v
 python validate_sql.py
+python analyze.py
 ```
+
+This generates `data/fulfillment_operations.csv` and `dashboards/on_time_by_facility.png`. Open the notebook from the repository root in Jupyter to explore the dataset.
+
+**Without local setup:** Open [GitHub Actions](../../actions), select the latest successful **Validate and build analytics artifacts** run, and download the `fulfillment-analytics-results` artifact containing the generated CSV and PNG.
+
+## Data dictionary and KPIs
+
+| Field / KPI | Definition |
+|---|---|
+| `date`, `facility` | Facility-day identifiers |
+| `scheduled_staff`, `actual_staff` | Planned and observed simulated staffing |
+| `scheduled_labor_hours`, `actual_labor_hours` | Eight hours per staff member |
+| `forecast_orders`, `orders_received` | Simulated demand forecast and intake |
+| `orders_processed`, `on_time_orders` | Daily throughput and service performance |
+| `defect_count`, `backlog_orders` | Simulated quality issues and ending queue |
+| Orders per labor hour | Sum(processed orders) / sum(actual labor hours) |
+| On-time rate | Sum(on-time orders) / sum(processed orders) |
+| Staffing coverage | Sum(actual staff) / sum(scheduled staff) |
+| DPMO proxy | 1,000,000 × sum(defects) / sum(processed orders), one opportunity per order |
+| Forecast error | (Actual intake − forecast intake) / forecast intake |
+
+Backlog carries forward within each facility: **ending backlog = previous ending backlog + orders received − orders processed**. The generator limits processed orders to available work and simulated capacity.
+
+## Methodology and limitations
+
+- Fixed random seed (`42`) ensures reproducibility.
+- Metrics are **weighted** using total numerators and denominators, not averaged daily percentages.
+- The simulator intentionally relates backlog to late-order share; associations are therefore model-dependent and **do not establish real-world causality**.
+- Simulated staffing, capacity, defect rates, and service levels are illustrative, not operational benchmarks.
+- Recommendations are hypotheses to test, **not claims of realized improvements or cost savings**.
+
+## Tools demonstrated
+
+**Python:** synthetic data generation, CSV processing, matplotlib, unit tests. **SQL (SQLite):** data quality checks, weighted KPI reporting, segmentation. **GitHub Actions:** reproducible build, automated validation, downloadable analysis artifacts. **Communication:** executive dashboard, quantified findings, and business recommendations.
