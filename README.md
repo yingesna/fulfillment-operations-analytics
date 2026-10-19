@@ -47,7 +47,7 @@ python analyze.py
 
 This generates `data/fulfillment_operations.csv` and `dashboards/on_time_by_facility.png`. Open the notebook from the repository root in Jupyter to explore the dataset.
 
-**Without local setup:** Open [GitHub Actions](../../actions), select the latest successful **Validate and build analytics artifacts** run, and download the `fulfillment-analytics-results` artifact containing the generated CSV and PNG.
+**Without local setup:** Open [GitHub Actions](https://github.com/yingesna/fulfillment-operations-analytics/actions), select the latest successful **Validate and build analytics artifacts** run, and download the `fulfillment-analytics-results` artifact containing the generated CSV and PNG.
 
 ## Data dictionary and KPIs
 
