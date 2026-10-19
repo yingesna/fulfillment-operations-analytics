@@ -43,3 +43,15 @@ Synthetic relationships are programmed assumptions, not empirical findings. Comp
 
 ## Next steps
 Add an executable notebook, richer dashboard, SQL import automation, time-series diagnostics, and a documented executive summary based on validated outputs.
+
+
+## Automated GitHub Actions pipeline
+The [analytics workflow](.github/workflows/analytics.yml) runs on pushes, pull requests, and manual dispatch. It generates the synthetic dataset, runs unit tests, executes SQL checks via `validate_sql.py`, produces the on-time performance chart, and uploads both the CSV and PNG as a downloadable workflow artifact.
+
+To run it manually, open **Actions → Validate and build analytics artifacts → Run workflow**. When the run finishes, download **fulfillment-analytics-results** from the run's Artifacts section. Workflow artifacts are generated outputs; they are not committed to the repository.
+
+To run SQL validation locally:
+```bash
+python generate_data.py
+python validate_sql.py
+```
